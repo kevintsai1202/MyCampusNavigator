@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useGameStore } from '@stores/gameStore'
 import { IsometricRenderer } from '@core/IsometricRenderer'
+import { useKeyboard } from '@hooks/useKeyboard'
+import { Direction } from '@core/CollisionSystem'
 
 /**
  * 遊戲 Canvas 組件
@@ -11,7 +13,17 @@ export default function GameCanvas() {
   const rendererRef = useRef<IsometricRenderer | null>(null)
   const animationFrameRef = useRef<number | null>(null)
 
-  const { map, player } = useGameStore()
+  const { map, player, movePlayerByDirection, isPaused } = useGameStore()
+
+  // 處理鍵盤移動
+  const handleMove = (direction: Direction) => {
+    if (!isPaused) {
+      movePlayerByDirection(direction)
+    }
+  }
+
+  // 啟用鍵盤控制（當遊戲未暫停時）
+  useKeyboard(handleMove, !isPaused)
 
   useEffect(() => {
     const canvas = canvasRef.current

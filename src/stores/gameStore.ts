@@ -6,6 +6,7 @@ import { PlaceType } from '@models/Place'
 import { generateCampusMap } from '@core/MapGenerator'
 import { Position } from '@models/Position'
 import { getPlaceAt } from '@models/CampusMap'
+import { CollisionSystem, Direction } from '@core/CollisionSystem'
 
 /**
  * 遊戲狀態管理 Store
@@ -32,6 +33,7 @@ interface GameStore {
 
   // 玩家移動
   movePlayer: (newPosition: Position) => void
+  movePlayerByDirection: (direction: Direction) => void
 
   // 地點互動
   visitPlace: (position: Position) => void
@@ -142,19 +144,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })
   },
 
-  // 移動玩家
+  // 移動玩家（直接指定位置）
   movePlayer: (newPosition: Position) => {
     const { player, map } = get()
     if (!player || !map) return
 
-    // 檢查新位置是否可移動
-    // 這裡簡化處理，實際應檢查可通行性
-    if (
-      newPosition.row < 0 ||
-      newPosition.row >= map.rows ||
-      newPosition.col < 0 ||
-      newPosition.col >= map.columns
-    ) {
+    // 使用碰撞系統驗證
+    if (!CollisionSystem.isWalkable(newPosition, map)) {
+      console.log('無法移動到該位置')
       return
     }
 
@@ -172,6 +169,38 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const place = getPlaceAt(map, newPosition)
     if (place && !place.visited) {
       get().visitPlace(newPosition)
+    }
+  },
+
+  // 按方向移動玩家（含碰撞檢測）
+  movePlayerByDirection: (direction: Direction) => {
+    const { player, map } = get()
+    if (!player || !map) return
+
+    // 執行碰撞檢測
+    const moveResult = CollisionSystem.checkMove(player.position, direction, map)
+
+    if (!moveResult.success) {
+      // 移動失敗，記錄碰撞
+      console.log(`碰撞: ${moveResult.message}`)
+      // 可以在這裡加入碰撞音效或視覺回饋
+      return
+    }
+
+    // 移動成功，更新玩家位置
+    set({
+      player: {
+        ...player,
+        position: moveResult.newPosition,
+        moveCount: player.moveCount + 1,
+        pathHistory: [...player.pathHistory, moveResult.newPosition],
+      },
+    })
+
+    // 檢查是否到達新地點
+    const place = getPlaceAt(map, moveResult.newPosition)
+    if (place && !place.visited) {
+      get().visitPlace(moveResult.newPosition)
     }
   },
 
