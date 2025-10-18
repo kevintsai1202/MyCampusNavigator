@@ -3,7 +3,7 @@ import { useGameStore } from './stores/gameStore'
 import { GameStatus } from './models/GameState'
 import { getAllPlaces, calculateMapStats } from './models/CampusMap'
 import { getPlaceTypeIcon, getPlaceTypeName } from './models/Place'
-import { MapPositionType, getMapPositionTypeName } from './models/MapPosition'
+import GameCanvas from './components/Game/GameCanvas'
 
 /**
  * 主應用程式組件
@@ -80,57 +80,14 @@ function App() {
 
         {/* 主要遊戲區域 */}
         <div className="flex h-[calc(100vh-80px)]">
-          {/* 地圖顯示區（文字版） */}
-          <div className="flex-1 p-4 overflow-auto">
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="text-xl font-bold mb-4">地圖預覽（文字模式）</h3>
-              <div className="font-mono text-xs leading-relaxed overflow-auto">
-                {map.grid.map((row, rowIdx) => (
-                  <div key={rowIdx} className="flex">
-                    {row.map((cell, colIdx) => {
-                      const isPlayer =
-                        player.position.row === rowIdx &&
-                        player.position.col === colIdx
-                      const place = map.places[rowIdx][colIdx]
+          {/* Canvas 遊戲視窗 */}
+          <div className="flex-1 relative overflow-hidden bg-gray-900">
+            <GameCanvas />
 
-                      let char = '·'
-                      let color = 'text-gray-600'
-
-                      if (isPlayer) {
-                        char = '@'
-                        color = 'text-green-400 font-bold'
-                      } else if (place) {
-                        char = getPlaceTypeIcon(place.type)
-                        color = place.visited ? 'text-blue-400' : 'text-yellow-400'
-                      } else if (cell === MapPositionType.BOUNDARY) {
-                        char = '#'
-                        color = 'text-gray-500'
-                      } else if (cell === MapPositionType.RESTRICTED) {
-                        char = 'X'
-                        color = 'text-red-400'
-                      } else if (cell === MapPositionType.START) {
-                        char = 'S'
-                        color = 'text-cyan-400'
-                      }
-
-                      return (
-                        <span
-                          key={colIdx}
-                          className={`${color} cursor-pointer hover:bg-gray-700 px-1`}
-                          title={`(${rowIdx},${colIdx}) ${getMapPositionTypeName(cell)}`}
-                          onClick={() => movePlayer({ row: rowIdx, col: colIdx })}
-                        >
-                          {char}
-                        </span>
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 text-sm text-gray-400">
-                <p>圖例：@ = 玩家 | 📚🍽️🏋️🎓🎭 = 地點 | # = 邊界 | X = 障礙 | · = 空地</p>
-                <p>點擊地圖上的位置來移動玩家（測試用）</p>
-              </div>
+            {/* 遊戲提示（覆蓋在 Canvas 上） */}
+            <div className="absolute bottom-4 left-4 bg-black/70 text-white px-4 py-2 rounded-lg text-sm">
+              <p>🎮 使用方向鍵或 WASD 移動</p>
+              <p>🗺️ 等距視角渲染系統已啟用</p>
             </div>
           </div>
 
