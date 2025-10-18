@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Copy-Item \"C:\\STS4\\MyCampusNavigator\\spec.md\" \"C:\\STS4\\MyCampusNavigator\\spec.md.old\")",
+      "Bash(npm run build)",
+      "Bash(npm install uuid)",
+      "Bash(npm install --save-dev @types/uuid)",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__navigate_page",
+      "Bash(Test-Path \"C:\\STS4\\MyCampusNavigator\\node_modules\")",
+      "Bash(test -d \"C:\\STS4\\MyCampusNavigator\\node_modules\")",
+      "Bash(pnpm dev)",
+      "Bash(npm run dev)",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__hover",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__list_console_messages",
+      "Bash(git init)",
+      "Bash(git add .)",
+      "Bash(git commit -m \"$(cat <<''EOF''\n初始化 Campus Navigator Web Game 專案\n\n建立專案基礎架構，包含：\n- React + Vite + TypeScript 開發環境\n- Zustand 狀態管理\n- Tailwind CSS 樣式系統\n- 隨機地圖生成系統\n- 遊戲資料模型與介面\n- 完整的專案規格文件（spec.md）\n- 測試劇本與測試報告（script.md, test-report.md）\n\n已完成功能：\n✅ 專案架構建立\n✅ 隨機地圖生成器（18x18 網格，13 個地點，27 個活動）\n✅ 遊戲狀態管理\n✅ 基礎 UI 介面（文字模式地圖預覽）\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

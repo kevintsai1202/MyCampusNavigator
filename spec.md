@@ -1,0 +1,2522 @@
+# Campus Navigator Web Game - 完整規格文件
+
+## 版本資訊
+- **專案名稱**: Campus Navigator Web Game
+- **版本**: 2.0 (Web Game Edition)
+- **文件版本**: 2.0.0
+- **最後更新**: 2025-10-18
+- **專案類型**: 等距視角 2.5D Web 互動遊戲
+- **開發語言**: TypeScript + React
+- **目標平台**: 現代瀏覽器（Chrome, Firefox, Safari, Edge）
+- **視覺風格**: Isometric (等距視角)
+
+---
+
+## 目錄
+1. [專案概述](#1-專案概述)
+2. [架構與技術選型](#2-架構與技術選型)
+3. [資料模型](#3-資料模型)
+4. [隨機地圖生成系統](#4-隨機地圖生成系統)
+5. [等距視角渲染系統](#5-等距視角渲染系統)
+6. [遊戲流程設計](#6-遊戲流程設計)
+7. [UI/UX 設計](#7-uiux-設計)
+8. [狀態管理](#8-狀態管理)
+9. [本地儲存設計](#9-本地儲存設計)
+10. [序列圖](#10-序列圖)
+11. [類別圖](#11-類別圖)
+12. [流程圖](#12-流程圖)
+13. [狀態圖](#13-狀態圖)
+14. [虛擬碼](#14-虛擬碼)
+15. [開發路線圖](#15-開發路線圖)
+16. [測試策略](#16-測試策略)
+
+---
+
+## 1. 專案概述
+
+### 1.1 專案目標
+Campus Navigator 是一款**等距視角 2.5D Web 遊戲**，玩家扮演學生在隨機生成的虛擬校園中探索、訪問不同地點、參加活動、預訂場地，並完成各種任務。遊戲採用 React + Vite 技術棧，提供流暢的遊戲體驗和精美的等距視角視覺呈現。
+
+### 1.2 遊戲特色
+- 🎲 **隨機地圖生成**: 每次遊戲都是全新的校園布局，保證可玩性
+- 🎨 **等距視角呈現**: 精美的 2.5D 遊戲畫面，模擬城市、紀念碑谷風格
+- 🎮 **流暢互動**: 支援鍵盤（WASD/方向鍵）和滑鼠點擊雙重操作
+- 💾 **進度儲存**: LocalStorage 本地儲存遊戲進度，支援多存檔
+- 🏆 **成就系統**: 解鎖各種成就和獎勵
+- 📊 **數據統計**: 詳細的遊戲數據追蹤和可視化
+- 🎵 **音效系統**: 背景音樂和互動音效增強沉浸感
+
+### 1.3 核心玩法
+1. **校園探索**: 在隨機生成的等距地圖上自由移動
+2. **地點互動**: 訪問 5 種不同類型的校園建築
+   - 🏛️ Library（圖書館）
+   - 🍽️ Cafeteria（餐廳）
+   - 🏃 Sports Center（運動中心）
+   - 🏫 Lecture Hall（講堂）
+   - 🎭 Event Hall（活動廳）
+3. **活動參與**: 參加 3 種活動類型獲得分數
+   - 📚 Lecture（講座）
+   - 💬 Seminar（研討會）
+   - 📝 Exam（考試）
+4. **場地預訂**: 預訂運動中心和活動廳解鎖特殊獎勵
+5. **任務系統**: 完成每日任務和成就賺取額外分數
+6. **排行榜**: 與歷史最佳成績競爭
+
+### 1.4 遊戲目標
+- **主要目標**: 訪問所有地點並參加所有活動
+- **次要目標**:
+  - 最小移動次數完成
+  - 避免碰撞（零碰撞挑戰）
+  - 解鎖所有成就
+  - 打破最高分記錄
+
+---
+
+## 2. 架構與技術選型
+
+### 2.1 系統架構
+
+```mermaid
+graph TD
+    A[Presentation Layer<br/>React Components<br/>- GameCanvas 等距視角畫布<br/>- UI Controls 控制介面<br/>- HUD 資訊顯示]
+    B[State Management<br/>Zustand Store<br/>- Game State 遊戲狀態<br/>- Player State 玩家狀態<br/>- Map State 地圖狀態]
+    C[Game Logic Layer<br/>Core Game Engine<br/>- Map Generator 地圖生成器<br/>- Collision Detection 碰撞偵測<br/>- Event System 事件系統]
+    D[Rendering Layer<br/>Isometric Renderer<br/>- Tile Rendering 磚塊渲染<br/>- Sprite Animation 精靈動畫<br/>- Effect System 特效系統]
+    E[Data Layer<br/>LocalStorage<br/>- Game Save 遊戲存檔<br/>- Settings 設定<br/>- High Scores 最高分]
+
+    A --> B
+    B --> C
+    C --> D
+    A --> D
+    B --> E
+```
+
+### 2.2 技術選型
+
+#### 核心技術棧
+| 技術項目 | 選用技術 | 版本 | 用途 |
+|---------|---------|------|------|
+| 前端框架 | React | 18+ | UI 組件化開發 |
+| 建構工具 | Vite | 5+ | 快速開發體驗、HMR |
+| 程式語言 | TypeScript | 5+ | 類型安全、IDE 支援 |
+| 狀態管理 | Zustand | 4+ | 輕量級狀態管理 |
+| 樣式方案 | Tailwind CSS | 3+ | 快速樣式開發 |
+| 渲染引擎 | HTML5 Canvas | - | 2D 遊戲渲染 |
+| 套件管理 | pnpm | 8+ | 快速、節省空間 |
+
+#### 開發工具鏈
+- **程式碼規範**: ESLint + Prettier
+- **版本控制**: Git + GitHub
+- **部署平台**: Vercel / Netlify / GitHub Pages
+- **測試框架**: Vitest + React Testing Library
+- **E2E 測試**: Playwright
+
+#### 設計模式
+1. **Component Pattern**: React 組件化架構
+2. **Observer Pattern**: Zustand 狀態訂閱
+3. **Factory Pattern**: 地點和事件物件生成
+4. **Strategy Pattern**: 不同地點類型的互動策略
+5. **Singleton Pattern**: 遊戲引擎實例
+6. **Command Pattern**: 玩家移動指令
+
+### 2.3 專案結構
+
+```
+campus-navigator/
+├── public/
+│   ├── assets/
+│   │   ├── sprites/           # 遊戲精靈圖
+│   │   │   ├── player/        # 玩家精靈（8方向）
+│   │   │   ├── places/        # 建築物精靈
+│   │   │   ├── tiles/         # 地圖磚塊
+│   │   │   └── effects/       # 特效動畫
+│   │   ├── sounds/            # 音效檔案
+│   │   │   ├── bgm/           # 背景音樂
+│   │   │   ├── sfx/           # 音效
+│   │   │   └── ambient/       # 環境音
+│   │   └── fonts/             # 遊戲字體
+│   └── index.html
+├── src/
+│   ├── components/            # React 組件
+│   │   ├── Game/
+│   │   │   ├── GameCanvas.tsx           # 主遊戲畫布
+│   │   │   ├── IsometricGrid.tsx        # 等距網格渲染
+│   │   │   ├── Player.tsx               # 玩家精靈
+│   │   │   ├── Place.tsx                # 地點精靈
+│   │   │   ├── TileMap.tsx              # 地圖磚塊層
+│   │   │   └── EffectLayer.tsx          # 特效層
+│   │   ├── UI/
+│   │   │   ├── HUD.tsx                  # 抬頭顯示器
+│   │   │   ├── Menu.tsx                 # 主選單
+│   │   │   ├── Dialog.tsx               # 對話框系統
+│   │   │   ├── StatsPanel.tsx           # 統計面板
+│   │   │   ├── MiniMap.tsx              # 小地圖
+│   │   │   └── Inventory.tsx            # 物品欄
+│   │   └── Screens/
+│   │       ├── MainMenuScreen.tsx       # 主選單畫面
+│   │       ├── GameScreen.tsx           # 遊戲畫面
+│   │       ├── PauseScreen.tsx          # 暫停畫面
+│   │       └── EndGameScreen.tsx        # 結束畫面
+│   ├── core/                  # 核心遊戲邏輯
+│   │   ├── MapGenerator.ts              # 地圖生成器
+│   │   ├── CollisionSystem.ts           # 碰撞偵測系統
+│   │   ├── EventManager.ts              # 事件管理器
+│   │   ├── PathFinding.ts               # A* 尋路演算法
+│   │   ├── GameLoop.ts                  # 遊戲主循環
+│   │   └── IsometricEngine.ts           # 等距視角引擎
+│   ├── models/                # 資料模型（TypeScript interfaces）
+│   │   ├── CampusMap.ts
+│   │   ├── Player.ts
+│   │   ├── Place.ts
+│   │   ├── Event.ts
+│   │   ├── Score.ts
+│   │   └── Achievement.ts
+│   ├── stores/                # Zustand 狀態管理
+│   │   ├── gameStore.ts                 # 遊戲狀態
+│   │   ├── playerStore.ts               # 玩家狀態
+│   │   ├── mapStore.ts                  # 地圖狀態
+│   │   └── uiStore.ts                   # UI 狀態
+│   ├── utils/                 # 工具函數
+│   │   ├── isometric.ts                 # 等距座標轉換
+│   │   ├── random.ts                    # 隨機數工具
+│   │   ├── storage.ts                   # LocalStorage 封裝
+│   │   ├── soundManager.ts              # 音效管理器
+│   │   └── validator.ts                 # 資料驗證
+│   ├── constants/             # 常數定義
+│   │   ├── gameConfig.ts                # 遊戲配置
+│   │   ├── placeTypes.ts                # 地點類型
+│   │   ├── eventTypes.ts                # 事件類型
+│   │   └── achievements.ts              # 成就定義
+│   ├── hooks/                 # Custom React Hooks
+│   │   ├── useGameLoop.ts               # 遊戲循環 Hook
+│   │   ├── useKeyboard.ts               # 鍵盤輸入 Hook
+│   │   ├── useLocalStorage.ts           # LocalStorage Hook
+│   │   └── useSound.ts                  # 音效 Hook
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── vite-env.d.ts
+├── tests/                     # 測試檔案
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+├── tailwind.config.js
+└── README.md
+```
+
+---
+
+## 3. 資料模型
+
+### 3.1 核心 TypeScript Interfaces
+
+#### 3.1.1 Position（位置）
+
+```typescript
+/**
+ * 表示 2D 網格位置
+ */
+export interface Position {
+  row: number;    // 行索引
+  col: number;    // 列索引
+}
+
+/**
+ * 等距視角座標（螢幕像素座標）
+ */
+export interface IsometricPosition {
+  x: number;      // 螢幕 X 座標
+  y: number;      // 螢幕 Y 座標
+}
+```
+
+#### 3.1.2 CampusMap（校園地圖）
+
+```typescript
+/**
+ * 地圖位置類型
+ */
+export enum MapPositionType {
+  BOUNDARY = 'BOUNDARY',       // 邊界牆
+  OPEN = 'OPEN',               // 開放路徑
+  RESTRICTED = 'RESTRICTED',   // 限制區域（障礙物）
+  PLACE = 'PLACE',             // 地點
+  START = 'START'              // 起始位置
+}
+
+/**
+ * 校園地圖
+ */
+export interface CampusMap {
+  name: string;                         // 地圖名稱
+  rows: number;                         // 行數
+  columns: number;                      // 列數
+  grid: MapPositionType[][];            // 地圖網格
+  places: (Place | null)[][];           // 地點網格
+  startPosition: Position;              // 起始位置
+  generatedAt: number;                  // 生成時間戳
+  seed?: number;                        // 隨機種子（用於重現地圖）
+}
+```
+
+#### 3.1.3 Place（地點）
+
+```typescript
+/**
+ * 地點類型
+ */
+export enum PlaceType {
+  LIBRARY = 'LIBRARY',                 // 圖書館
+  CAFETERIA = 'CAFETERIA',             // 餐廳
+  SPORTS_CENTER = 'SPORTS_CENTER',     // 運動中心
+  LECTURE_HALL = 'LECTURE_HALL',       // 講堂
+  EVENT_HALL = 'EVENT_HALL'            // 活動廳
+}
+
+/**
+ * 地點基礎介面
+ */
+export interface Place {
+  id: string;                           // 唯一識別碼
+  name: string;                         // 地點名稱
+  type: PlaceType;                      // 地點類型
+  position: Position;                   // 位置
+  score: number;                        // 訪問得分
+  visited: boolean;                     // 是否已訪問
+  restricted: boolean;                  // 是否受限（未實裝）
+  bookable: boolean;                    // 是否可預訂
+  booked: boolean;                      // 是否已預訂
+  events: Event[];                      // 活動列表
+  description: string;                  // 描述
+  sprite: string;                       // 精靈圖路徑
+}
+
+/**
+ * 圖書館
+ */
+export interface Library extends Place {
+  type: PlaceType.LIBRARY;
+  studyRooms: number;                   // 自習室數量
+  openHours: string;                    // 開放時間
+}
+
+/**
+ * 餐廳
+ */
+export interface Cafeteria extends Place {
+  type: PlaceType.CAFETERIA;
+  menu: MenuItem[];                     // 菜單項目
+}
+
+export interface MenuItem {
+  name: string;                         // 餐點名稱
+  price: number;                        // 價格（負分）
+}
+
+/**
+ * 運動中心
+ */
+export interface SportsCenter extends Place {
+  type: PlaceType.SPORTS_CENTER;
+  bookable: true;
+  facilities: string[];                 // 設施清單
+}
+
+/**
+ * 講堂
+ */
+export interface LectureHall extends Place {
+  type: PlaceType.LECTURE_HALL;
+  capacity: number;                     // 容納人數
+  building: string;                     // 建築名稱
+}
+
+/**
+ * 活動廳
+ */
+export interface EventHall extends Place {
+  type: PlaceType.EVENT_HALL;
+  bookable: true;
+  stage: boolean;                       // 是否有舞台
+}
+```
+
+#### 3.1.4 Event（活動）
+
+```typescript
+/**
+ * 活動類型
+ */
+export enum EventType {
+  LECTURE = 'LECTURE',                 // 講座
+  SEMINAR = 'SEMINAR',                 // 研討會
+  EXAM = 'EXAM'                        // 考試
+}
+
+/**
+ * 活動基礎介面
+ */
+export interface Event {
+  id: number;                           // 活動 ID
+  name: string;                         // 活動名稱
+  type: EventType;                      // 活動類型
+  date: string;                         // 日期 (YYYY-MM-DD)
+  startTime: string;                    // 開始時間 (HH:mm)
+  endTime: string;                      // 結束時間 (HH:mm)
+  score: number;                        // 活動得分
+  attended: boolean;                    // 是否已參加
+  placeId: string;                      // 所屬地點 ID
+}
+
+/**
+ * 講座
+ */
+export interface Lecture extends Event {
+  type: EventType.LECTURE;
+  courseCode: string;                   // 課程代碼
+  lecturer: string;                     // 講師
+}
+
+/**
+ * 研討會
+ */
+export interface Seminar extends Event {
+  type: EventType.SEMINAR;
+  speakers: string[];                   // 講者列表
+  topic: string;                        // 主題
+}
+
+/**
+ * 考試
+ */
+export interface Exam extends Event {
+  type: EventType.EXAM;
+  courseCode: string;                   // 課程代碼
+  duration: number;                     // 時長（分鐘）
+}
+```
+
+#### 3.1.5 Player（玩家）
+
+```typescript
+/**
+ * 移動方向
+ */
+export enum Direction {
+  UP = 'UP',
+  DOWN = 'DOWN',
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
+  UP_LEFT = 'UP_LEFT',
+  UP_RIGHT = 'UP_RIGHT',
+  DOWN_LEFT = 'DOWN_LEFT',
+  DOWN_RIGHT = 'DOWN_RIGHT'
+}
+
+/**
+ * 玩家狀態
+ */
+export interface Player {
+  currentPosition: Position;            // 當前位置
+  previousPosition: Position | null;    // 前一位置
+  facing: Direction;                    // 面向方向
+  totalMoves: number;                   // 總移動次數
+  totalHits: number;                    // 總碰撞次數
+  totalScore: number;                   // 總得分
+  scoreHistory: Score[];                // 得分歷史
+  achievements: string[];               // 已解鎖成就
+  inventory: string[];                  // 物品欄
+  sessionId: string;                    // 會話 ID
+  isMoving: boolean;                    // 是否正在移動
+  sprite: string;                       // 玩家精靈圖
+}
+```
+
+#### 3.1.6 Score（得分記錄）
+
+```typescript
+/**
+ * 得分記錄
+ */
+export interface Score {
+  id: string;                           // 記錄 ID
+  sessionId: string;                    // 會話 ID
+  mapName: string;                      // 地圖名稱
+  placeName: string;                    // 地點名稱
+  placeType: PlaceType;                 // 地點類型
+  eventName?: string;                   // 活動名稱（可選）
+  eventType?: EventType;                // 活動類型（可選）
+  date?: string;                        // 日期（可選）
+  timeRange?: string;                   // 時間範圍（可選）
+  moves: number;                        // 移動次數
+  hits: number;                         // 碰撞次數
+  score: number;                        // 得分
+  timestamp: number;                    // 時間戳
+}
+```
+
+#### 3.1.7 GameState（遊戲狀態）
+
+```typescript
+/**
+ * 遊戲狀態枚舉
+ */
+export enum GameStatus {
+  MENU = 'MENU',                        // 主選單
+  PLAYING = 'PLAYING',                  // 遊玩中
+  PAUSED = 'PAUSED',                    // 暫停
+  COMPLETED = 'COMPLETED',              // 完成
+  GAME_OVER = 'GAME_OVER'               // 遊戲結束
+}
+
+/**
+ * 遊戲狀態
+ */
+export interface GameState {
+  status: GameStatus;                   // 當前狀態
+  map: CampusMap;                       // 當前地圖
+  player: Player;                       // 玩家
+  elapsedTime: number;                  // 經過時間（秒）
+  isPaused: boolean;                    // 是否暫停
+  showDialog: boolean;                  // 是否顯示對話框
+  currentDialog?: DialogData;           // 當前對話資料
+  settings: GameSettings;               // 遊戲設定
+}
+
+/**
+ * 遊戲設定
+ */
+export interface GameSettings {
+  soundEnabled: boolean;                // 音效開關
+  musicEnabled: boolean;                // 音樂開關
+  volume: number;                       // 音量 (0-1)
+  showMiniMap: boolean;                 // 顯示小地圖
+  showGrid: boolean;                    // 顯示網格
+}
+
+/**
+ * 對話資料
+ */
+export interface DialogData {
+  type: 'place' | 'event' | 'achievement' | 'confirm';
+  title: string;
+  content: string;
+  options?: DialogOption[];
+}
+
+export interface DialogOption {
+  label: string;
+  action: () => void;
+}
+```
+
+#### 3.1.8 Achievement（成就）
+
+```typescript
+/**
+ * 成就
+ */
+export interface Achievement {
+  id: string;                           // 成就 ID
+  name: string;                         // 成就名稱
+  description: string;                  // 描述
+  icon: string;                         // 圖示
+  unlocked: boolean;                    // 是否已解鎖
+  unlockedAt?: number;                  // 解鎖時間
+  progress: number;                     // 進度 (0-100)
+  requirement: string;                  // 條件說明
+}
+```
+
+---
+
+## 4. 隨機地圖生成系統
+
+### 4.1 生成配置
+
+```typescript
+/**
+ * 地圖生成配置
+ */
+export interface MapGenerationConfig {
+  rows: number;                         // 地圖行數 (15-20)
+  columns: number;                      // 地圖列數 (15-20)
+  placeCount: {
+    [PlaceType.LIBRARY]: [number, number];           // [min, max] = [2, 3]
+    [PlaceType.CAFETERIA]: [number, number];         // [min, max] = [2, 4]
+    [PlaceType.SPORTS_CENTER]: [number, number];     // [min, max] = [1, 2]
+    [PlaceType.LECTURE_HALL]: [number, number];      // [min, max] = [3, 5]
+    [PlaceType.EVENT_HALL]: [number, number];        // [min, max] = [1, 2]
+  };
+  obstacleRatio: number;                // 障礙物比例 (0.15 = 15%)
+  minDistance: number;                  // 地點最小間距 (3格)
+  eventPerPlace: [number, number];      // 每個地點的活動數 [min, max]
+  seed?: number;                        // 隨機種子（可選）
+}
+```
+
+### 4.2 生成演算法
+
+#### 步驟 1: 初始化網格
+
+```typescript
+/**
+ * 初始化空白地圖並建立邊界
+ */
+function initializeGrid(rows: number, cols: number): MapPositionType[][] {
+  const grid: MapPositionType[][] = [];
+
+  for (let r = 0; r < rows; r++) {
+    grid[r] = [];
+    for (let c = 0; c < cols; c++) {
+      // 邊界設為 BOUNDARY，其餘設為 OPEN
+      if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
+        grid[r][c] = MapPositionType.BOUNDARY;
+      } else {
+        grid[r][c] = MapPositionType.OPEN;
+      }
+    }
+  }
+
+  return grid;
+}
+```
+
+#### 步驟 2: 隨機放置地點
+
+```typescript
+/**
+ * 隨機放置地點，確保不重疊且符合最小間距
+ */
+function placePlaces(
+  grid: MapPositionType[][],
+  config: MapGenerationConfig
+): (Place | null)[][] {
+  const places: (Place | null)[][] = Array(config.rows)
+    .fill(null)
+    .map(() => Array(config.columns).fill(null));
+
+  const occupiedPositions: Position[] = [];
+
+  // 遍歷所有地點類型
+  Object.entries(config.placeCount).forEach(([type, [min, max]]) => {
+    const count = randomInt(min, max + 1); // 隨機數量
+
+    for (let i = 0; i < count; i++) {
+      let position: Position;
+      let attempts = 0;
+      const maxAttempts = 100;
+
+      // 嘗試找到合適位置
+      do {
+        position = {
+          row: randomInt(2, config.rows - 2),
+          col: randomInt(2, config.columns - 2)
+        };
+        attempts++;
+      } while (
+        attempts < maxAttempts &&
+        !isValidPlacement(position, occupiedPositions, config.minDistance)
+      );
+
+      if (attempts < maxAttempts) {
+        // 建立地點
+        const place = createPlace(type as PlaceType, position);
+        places[position.row][position.col] = place;
+        grid[position.row][position.col] = MapPositionType.PLACE;
+        occupiedPositions.push(position);
+      }
+    }
+  });
+
+  return places;
+}
+
+/**
+ * 檢查位置是否有效（不重疊且符合最小間距）
+ */
+function isValidPlacement(
+  position: Position,
+  occupied: Position[],
+  minDistance: number
+): boolean {
+  return occupied.every(pos => {
+    const distance = Math.abs(pos.row - position.row) +
+                    Math.abs(pos.col - position.col);
+    return distance >= minDistance;
+  });
+}
+```
+
+#### 步驟 3: 生成障礙物
+
+```typescript
+/**
+ * 隨機生成障礙物
+ */
+function generateObstacles(
+  grid: MapPositionType[][],
+  config: MapGenerationConfig
+): void {
+  const totalCells = (config.rows - 2) * (config.columns - 2);
+  const obstacleCount = Math.floor(totalCells * config.obstacleRatio);
+
+  let placed = 0;
+  while (placed < obstacleCount) {
+    const row = randomInt(1, config.rows - 1);
+    const col = randomInt(1, config.columns - 1);
+
+    // 只在 OPEN 格子放置障礙物
+    if (grid[row][col] === MapPositionType.OPEN) {
+      grid[row][col] = MapPositionType.RESTRICTED;
+      placed++;
+    }
+  }
+}
+```
+
+#### 步驟 4: 設定起始點
+
+```typescript
+/**
+ * 在空曠區域設定起始點
+ */
+function setStartPosition(
+  grid: MapPositionType[][],
+  config: MapGenerationConfig
+): Position {
+  // 尋找 3x3 區域都是 OPEN 的位置
+  for (let r = 2; r < config.rows - 2; r++) {
+    for (let c = 2; c < config.columns - 2; c++) {
+      if (isAreaClear(grid, r, c, 3)) {
+        grid[r][c] = MapPositionType.START;
+        return { row: r, col: c };
+      }
+    }
+  }
+
+  // 找不到則返回中心點
+  const center = {
+    row: Math.floor(config.rows / 2),
+    col: Math.floor(config.columns / 2)
+  };
+  grid[center.row][center.col] = MapPositionType.START;
+  return center;
+}
+
+/**
+ * 檢查區域是否空曠
+ */
+function isAreaClear(
+  grid: MapPositionType[][],
+  row: number,
+  col: number,
+  size: number
+): boolean {
+  const half = Math.floor(size / 2);
+  for (let r = row - half; r <= row + half; r++) {
+    for (let c = col - half; c <= col + half; c++) {
+      if (grid[r]?.[c] !== MapPositionType.OPEN) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+```
+
+#### 步驟 5: 驗證連通性
+
+```typescript
+/**
+ * 使用 BFS 驗證所有地點可從起始點到達
+ */
+function validateConnectivity(
+  grid: MapPositionType[][],
+  places: (Place | null)[][],
+  start: Position
+): boolean {
+  const visited = new Set<string>();
+  const queue: Position[] = [start];
+  const reachablePlaces = new Set<string>();
+
+  // BFS 遍歷
+  while (queue.length > 0) {
+    const pos = queue.shift()!;
+    const key = `${pos.row},${pos.col}`;
+
+    if (visited.has(key)) continue;
+    visited.add(key);
+
+    // 記錄可達地點
+    if (places[pos.row][pos.col]) {
+      reachablePlaces.add(key);
+    }
+
+    // 探索四個方向
+    const directions = [
+      { row: -1, col: 0 },
+      { row: 1, col: 0 },
+      { row: 0, col: -1 },
+      { row: 0, col: 1 }
+    ];
+
+    for (const dir of directions) {
+      const newPos = {
+        row: pos.row + dir.row,
+        col: pos.col + dir.col
+      };
+
+      if (
+        grid[newPos.row]?.[newPos.col] &&
+        grid[newPos.row][newPos.col] !== MapPositionType.BOUNDARY &&
+        grid[newPos.row][newPos.col] !== MapPositionType.RESTRICTED
+      ) {
+        queue.push(newPos);
+      }
+    }
+  }
+
+  // 計算所有地點總數
+  let totalPlaces = 0;
+  for (const row of places) {
+    for (const place of row) {
+      if (place) totalPlaces++;
+    }
+  }
+
+  // 驗證是否所有地點都可達
+  return reachablePlaces.size === totalPlaces;
+}
+
+/**
+ * 如果連通性驗證失敗，移除障礙物以建立路徑
+ */
+function fixConnectivity(
+  grid: MapPositionType[][],
+  places: (Place | null)[][],
+  start: Position
+): void {
+  // 找到所有未連通的地點
+  // 使用 A* 為每個地點建立路徑
+  // 移除路徑上的障礙物
+  // 實作細節省略...
+}
+```
+
+#### 步驟 6: 生成活動
+
+```typescript
+/**
+ * 為每個地點生成隨機活動
+ */
+function generateEvents(
+  places: (Place | null)[][],
+  config: MapGenerationConfig
+): void {
+  const [minEvents, maxEvents] = config.eventPerPlace;
+
+  for (const row of places) {
+    for (const place of row) {
+      if (!place) continue;
+
+      const eventCount = randomInt(minEvents, maxEvents + 1);
+      place.events = [];
+
+      for (let i = 0; i < eventCount; i++) {
+        const event = createRandomEvent(place.id);
+        place.events.push(event);
+      }
+    }
+  }
+}
+
+/**
+ * 建立隨機活動
+ */
+function createRandomEvent(placeId: string): Event {
+  const types = [EventType.LECTURE, EventType.SEMINAR, EventType.EXAM];
+  const type = types[randomInt(0, types.length)];
+
+  const baseEvent = {
+    id: generateId(),
+    placeId,
+    type,
+    date: generateRandomDate(),
+    startTime: generateRandomTime(),
+    endTime: '', // 計算後設定
+    score: randomInt(5, 15),
+    attended: false
+  };
+
+  switch (type) {
+    case EventType.LECTURE:
+      return {
+        ...baseEvent,
+        name: generateLectureName(),
+        courseCode: generateCourseCode(),
+        lecturer: generateLecturerName()
+      } as Lecture;
+
+    case EventType.SEMINAR:
+      return {
+        ...baseEvent,
+        name: generateSeminarName(),
+        speakers: generateSpeakers(),
+        topic: generateTopic()
+      } as Seminar;
+
+    case EventType.EXAM:
+      return {
+        ...baseEvent,
+        name: `${generateCourseCode()} Exam`,
+        courseCode: generateCourseCode(),
+        duration: randomInt(60, 180)
+      } as Exam;
+  }
+}
+```
+
+### 4.3 完整生成流程
+
+```typescript
+/**
+ * 主要地圖生成函數
+ */
+export function generateCampusMap(
+  config: MapGenerationConfig
+): CampusMap {
+  // 1. 初始化網格
+  const grid = initializeGrid(config.rows, config.columns);
+
+  // 2. 放置地點
+  const places = placePlaces(grid, config);
+
+  // 3. 生成障礙物
+  generateObstacles(grid, config);
+
+  // 4. 設定起始點
+  const startPosition = setStartPosition(grid, config);
+
+  // 5. 驗證連通性
+  let attempts = 0;
+  while (!validateConnectivity(grid, places, startPosition) && attempts < 10) {
+    fixConnectivity(grid, places, startPosition);
+    attempts++;
+  }
+
+  // 如果 10 次嘗試後仍無法連通，重新生成
+  if (attempts >= 10) {
+    return generateCampusMap(config);
+  }
+
+  // 6. 生成活動
+  generateEvents(places, config);
+
+  // 7. 建立地圖物件
+  return {
+    name: `Campus ${Date.now()}`,
+    rows: config.rows,
+    columns: config.columns,
+    grid,
+    places,
+    startPosition,
+    generatedAt: Date.now(),
+    seed: config.seed
+  };
+}
+```
+
+---
+
+## 5. 等距視角渲染系統
+
+### 5.1 座標轉換
+
+#### 網格座標 → 等距座標
+
+```typescript
+/**
+ * 將網格座標轉換為等距視角螢幕座標
+ *
+ * 等距視角公式:
+ * screenX = (gridCol - gridRow) * tileWidth / 2
+ * screenY = (gridCol + gridRow) * tileHeight / 2
+ */
+export function gridToIsometric(
+  gridPos: Position,
+  tileWidth: number,
+  tileHeight: number
+): IsometricPosition {
+  return {
+    x: (gridPos.col - gridPos.row) * (tileWidth / 2),
+    y: (gridPos.col + gridPos.row) * (tileHeight / 2)
+  };
+}
+```
+
+#### 等距座標 → 網格座標
+
+```typescript
+/**
+ * 將等距視角螢幕座標轉換回網格座標
+ *
+ * 反向公式:
+ * gridCol = (screenX / tileWidth + screenY / tileHeight)
+ * gridRow = (screenY / tileHeight - screenX / tileWidth)
+ */
+export function isometricToGrid(
+  isoPos: IsometricPosition,
+  tileWidth: number,
+  tileHeight: number
+): Position {
+  return {
+    col: Math.floor((isoPos.x / tileWidth) + (isoPos.y / tileHeight)),
+    row: Math.floor((isoPos.y / tileHeight) - (isoPos.x / tileWidth))
+  };
+}
+```
+
+### 5.2 渲染層次
+
+```typescript
+/**
+ * 渲染順序（從後到前）
+ */
+export enum RenderLayer {
+  GROUND = 0,          // 地面層（磚塊）
+  DECORATION = 1,      // 裝飾層（樹木、草地）
+  BUILDING = 2,        // 建築層（地點）
+  CHARACTER = 3,       // 角色層（玩家）
+  EFFECT = 4,          // 特效層（動畫）
+  UI = 5               // UI 層（對話框）
+}
+
+/**
+ * 可渲染物件介面
+ */
+export interface Renderable {
+  layer: RenderLayer;
+  position: Position;
+  zIndex: number;       // 同層內的深度（row + col 決定）
+  sprite: string;
+  visible: boolean;
+  render(ctx: CanvasRenderingContext2D): void;
+}
+```
+
+### 5.3 等距視角渲染器
+
+```typescript
+/**
+ * 等距視角渲染引擎
+ */
+export class IsometricRenderer {
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+  private tileWidth: number = 64;   // 磚塊寬度
+  private tileHeight: number = 32;  // 磚塊高度
+  private offsetX: number = 0;      // 視角偏移 X
+  private offsetY: number = 0;      // 視角偏移 Y
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d')!;
+    this.centerCamera();
+  }
+
+  /**
+   * 渲染整個場景
+   */
+  render(map: CampusMap, player: Player): void {
+    // 清空畫布
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // 收集所有可渲染物件
+    const renderables: Renderable[] = [];
+
+    // 加入地圖磚塊
+    renderables.push(...this.collectTiles(map));
+
+    // 加入地點
+    renderables.push(...this.collectPlaces(map));
+
+    // 加入玩家
+    renderables.push(this.createPlayerRenderable(player));
+
+    // 排序（先按層次，再按 zIndex）
+    renderables.sort((a, b) => {
+      if (a.layer !== b.layer) return a.layer - b.layer;
+      return a.zIndex - b.zIndex;
+    });
+
+    // 渲染所有物件
+    for (const renderable of renderables) {
+      if (renderable.visible) {
+        this.ctx.save();
+        this.ctx.translate(this.offsetX, this.offsetY);
+        renderable.render(this.ctx);
+        this.ctx.restore();
+      }
+    }
+  }
+
+  /**
+   * 收集地圖磚塊
+   */
+  private collectTiles(map: CampusMap): Renderable[] {
+    const tiles: Renderable[] = [];
+
+    for (let row = 0; row < map.rows; row++) {
+      for (let col = 0; col < map.columns; col++) {
+        const type = map.grid[row][col];
+        const pos = { row, col };
+        const isoPos = gridToIsometric(pos, this.tileWidth, this.tileHeight);
+
+        tiles.push({
+          layer: RenderLayer.GROUND,
+          position: pos,
+          zIndex: row + col,
+          sprite: this.getTileSprite(type),
+          visible: true,
+          render: (ctx) => {
+            this.renderTile(ctx, isoPos, type);
+          }
+        });
+      }
+    }
+
+    return tiles;
+  }
+
+  /**
+   * 渲染單一磚塊
+   */
+  private renderTile(
+    ctx: CanvasRenderingContext2D,
+    isoPos: IsometricPosition,
+    type: MapPositionType
+  ): void {
+    ctx.save();
+    ctx.translate(isoPos.x, isoPos.y);
+
+    // 繪製等距菱形磚塊
+    ctx.beginPath();
+    ctx.moveTo(0, -this.tileHeight / 2);
+    ctx.lineTo(this.tileWidth / 2, 0);
+    ctx.lineTo(0, this.tileHeight / 2);
+    ctx.lineTo(-this.tileWidth / 2, 0);
+    ctx.closePath();
+
+    // 根據類型填充顏色
+    ctx.fillStyle = this.getTileColor(type);
+    ctx.fill();
+
+    // 邊框
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /**
+   * 取得磚塊顏色
+   */
+  private getTileColor(type: MapPositionType): string {
+    switch (type) {
+      case MapPositionType.BOUNDARY:
+        return '#555';
+      case MapPositionType.OPEN:
+        return '#90EE90';
+      case MapPositionType.RESTRICTED:
+        return '#8B4513';
+      case MapPositionType.PLACE:
+        return '#87CEEB';
+      case MapPositionType.START:
+        return '#FFD700';
+      default:
+        return '#FFF';
+    }
+  }
+
+  /**
+   * 將相機置中於玩家
+   */
+  centerCamera(player?: Player): void {
+    if (player) {
+      const isoPos = gridToIsometric(
+        player.currentPosition,
+        this.tileWidth,
+        this.tileHeight
+      );
+      this.offsetX = this.canvas.width / 2 - isoPos.x;
+      this.offsetY = this.canvas.height / 2 - isoPos.y;
+    } else {
+      this.offsetX = this.canvas.width / 2;
+      this.offsetY = this.canvas.height / 4;
+    }
+  }
+}
+```
+
+---
+
+## 6. 遊戲流程設計
+
+### 6.1 主要遊戲流程
+
+```mermaid
+stateDiagram-v2
+    [*] --> 主選單
+    主選單 --> 新遊戲: 開始新遊戲
+    主選單 --> 載入遊戲: 載入存檔
+    主選單 --> 設定: 調整設定
+    主選單 --> [*]: 退出
+
+    新遊戲 --> 地圖生成
+    地圖生成 --> 遊玩中
+    載入遊戲 --> 遊玩中
+
+    遊玩中 --> 暫停: ESC鍵
+    遊玩中 --> 地點互動: 到達地點
+    遊玩中 --> 遊戲完成: 所有任務完成
+
+    地點互動 --> 活動選擇: 有活動
+    地點互動 --> 遊玩中: 繼續
+    活動選擇 --> 遊玩中: 完成
+
+    暫停 --> 遊玩中: 繼續
+    暫停 --> 主選單: 返回主選單
+
+    遊戲完成 --> 結算畫面
+    結算畫面 --> 主選單: 返回主選單
+```
+
+### 6.2 玩家移動流程
+
+```typescript
+/**
+ * 玩家移動處理
+ */
+function handlePlayerMove(
+  player: Player,
+  map: CampusMap,
+  direction: Direction
+): MoveResult {
+  // 計算新位置
+  const newPosition = calculateNewPosition(player.currentPosition, direction);
+
+  // 檢查新位置類型
+  const positionType = map.grid[newPosition.row]?.[newPosition.col];
+
+  if (!positionType) {
+    return { success: false, reason: 'Out of bounds' };
+  }
+
+  // 處理不同類型的位置
+  switch (positionType) {
+    case MapPositionType.BOUNDARY:
+    case MapPositionType.RESTRICTED:
+      // 碰撞
+      player.totalHits++;
+      playSound('collision');
+      return {
+        success: false,
+        reason: 'Collision',
+        message: '你撞到了障礙物！'
+      };
+
+    case MapPositionType.OPEN:
+      // 有效移動
+      player.previousPosition = player.currentPosition;
+      player.currentPosition = newPosition;
+      player.totalMoves++;
+      player.facing = direction;
+      playSound('step');
+      return { success: true };
+
+    case MapPositionType.PLACE:
+      // 到達地點
+      player.previousPosition = player.currentPosition;
+      player.currentPosition = newPosition;
+      player.totalMoves++;
+      player.facing = direction;
+      playSound('arrive');
+
+      // 觸發地點互動
+      const place = map.places[newPosition.row][newPosition.col];
+      if (place) {
+        handlePlaceInteraction(player, place);
+      }
+
+      return { success: true, place };
+
+    default:
+      return { success: false, reason: 'Unknown tile type' };
+  }
+}
+
+interface MoveResult {
+  success: boolean;
+  reason?: string;
+  message?: string;
+  place?: Place;
+}
+```
+
+### 6.3 地點互動流程
+
+```typescript
+/**
+ * 地點互動處理
+ */
+function handlePlaceInteraction(player: Player, place: Place): void {
+  // 簡單地點（沒有活動）
+  if (place.events.length === 0 || place.events.every(e => e.attended)) {
+    if (!place.visited) {
+      // 首次訪問
+      player.totalScore += place.score;
+      place.visited = true;
+
+      // 記錄得分
+      const score: Score = {
+        id: generateId(),
+        sessionId: player.sessionId,
+        mapName: '當前地圖',
+        placeName: place.name,
+        placeType: place.type,
+        moves: player.totalMoves,
+        hits: player.totalHits,
+        score: place.score,
+        timestamp: Date.now()
+      };
+      player.scoreHistory.push(score);
+
+      // 顯示訊息
+      showDialog({
+        type: 'place',
+        title: place.name,
+        content: `你訪問了${place.name}，獲得 ${place.score} 分！`
+      });
+    } else {
+      // 重複訪問
+      showDialog({
+        type: 'place',
+        title: place.name,
+        content: '這裡沒有新的事情了。'
+      });
+    }
+    return;
+  }
+
+  // 有活動的地點
+  const availableEvents = place.events.filter(e => !e.attended);
+
+  showEventSelectionDialog(place, availableEvents, (selectedEvent) => {
+    if (selectedEvent) {
+      attendEvent(player, place, selectedEvent);
+    }
+  });
+}
+
+/**
+ * 參加活動
+ */
+function attendEvent(player: Player, place: Place, event: Event): void {
+  // 計算總得分（地點 + 活動）
+  const totalScore = place.score + event.score;
+  player.totalScore += totalScore;
+
+  // 標記為已參加
+  event.attended = true;
+
+  // 標記地點為已訪問
+  if (!place.visited) {
+    place.visited = true;
+  }
+
+  // 記錄得分
+  const score: Score = {
+    id: generateId(),
+    sessionId: player.sessionId,
+    mapName: '當前地圖',
+    placeName: place.name,
+    placeType: place.type,
+    eventName: event.name,
+    eventType: event.type,
+    date: event.date,
+    timeRange: `${event.startTime}-${event.endTime}`,
+    moves: player.totalMoves,
+    hits: player.totalHits,
+    score: totalScore,
+    timestamp: Date.now()
+  };
+  player.scoreHistory.push(score);
+
+  // 檢查成就
+  checkAchievements(player);
+
+  // 顯示訊息
+  showDialog({
+    type: 'event',
+    title: event.name,
+    content: `你參加了${getEventTypeName(event.type)}「${event.name}」，獲得 ${totalScore} 分！`
+  });
+
+  // 播放音效
+  playSound('achievement');
+
+  // 詢問是否繼續參加其他活動
+  const remainingEvents = place.events.filter(e => !e.attended);
+  if (remainingEvents.length > 0) {
+    showConfirmDialog(
+      '還有其他活動，要繼續參加嗎？',
+      () => {
+        showEventSelectionDialog(place, remainingEvents, (nextEvent) => {
+          if (nextEvent) {
+            attendEvent(player, place, nextEvent);
+          }
+        });
+      },
+      () => {
+        // 不繼續
+      }
+    );
+  }
+}
+```
+
+### 6.4 遊戲完成檢查
+
+```typescript
+/**
+ * 檢查遊戲是否完成
+ */
+function checkGameCompletion(map: CampusMap, player: Player): boolean {
+  // 檢查所有地點是否已訪問
+  for (const row of map.places) {
+    for (const place of row) {
+      if (place && !place.visited) {
+        return false;
+      }
+    }
+  }
+
+  // 檢查所有活動是否已參加
+  for (const row of map.places) {
+    for (const place of row) {
+      if (place) {
+        for (const event of place.events) {
+          if (!event.attended) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * 遊戲完成處理
+ */
+function handleGameCompletion(player: Player, elapsedTime: number): void {
+  // 計算最終統計
+  const stats = {
+    totalScore: player.totalScore,
+    totalMoves: player.totalMoves,
+    totalHits: player.totalHits,
+    elapsedTime,
+    efficiency: calculateEfficiency(player, elapsedTime)
+  };
+
+  // 儲存到排行榜
+  saveToLeaderboard(stats);
+
+  // 檢查並解鎖成就
+  checkCompletionAchievements(player, stats);
+
+  // 顯示結算畫面
+  showEndGameScreen(stats);
+}
+```
+
+---
+
+## 7. UI/UX 設計
+
+### 7.1 主選單設計
+
+```
+┌────────────────────────────────────────┐
+│                                        │
+│     🎓 CAMPUS NAVIGATOR 🎓             │
+│                                        │
+│         [開始新遊戲]                    │
+│         [載入遊戲]                      │
+│         [排行榜]                        │
+│         [設定]                          │
+│         [關於]                          │
+│         [退出]                          │
+│                                        │
+│                                        │
+│   版本 2.0  ©  2025                    │
+└────────────────────────────────────────┘
+```
+
+### 7.2 遊戲畫面布局
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🎮 Campus Navigator     💰 得分: 125.5    ⏱️ 05:32    📊    │
+├─────────────────────────────────────┬───────────────────────┤
+│                                     │  📍 當前位置          │
+│                                     │  John Medley Building │
+│         等距視角遊戲畫面             │                       │
+│                                     │  🎯 任務進度          │
+│      /\  /\  /\  /\  /\  /\        │  ▓▓▓▓▓▓▓▓▓░ 80%      │
+│     /  \/  \/  \/  \/  \/  \       │                       │
+│    │ 🏛 │ 🌳 │ 📚 │ 🏃 │ 🎭 │      │  📊 統計              │
+│     \  /\  /\  /\  /\  /\  /       │  移動: 42             │
+│      \/  \/  \/  \/  \/  \/        │  碰撞: 3              │
+│    │ 🌳 │ 👤 │ 🍽 │ 🌳 │ 🏫 │      │  地點: 5/8            │
+│     \  /\  /\  /\  /\  /\  /       │  活動: 12/15          │
+│      \/  \/  \/  \/  \/  \/        │                       │
+│                                     │  🏆 成就              │
+│                                     │  ○ 初次探索           │
+│                                     │  ● 學霸之路           │
+│                                     │  ○ 零碰撞挑戰         │
+│                                     │                       │
+├─────────────────────────────────────┴───────────────────────┤
+│ 💡 提示: 使用 WASD 或方向鍵移動 | 按 ESC 暫停             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 7.3 對話框設計
+
+#### 地點訪問對話框
+
+```
+┌─────────────────────────────────────┐
+│  📚 圖書館                          │
+├─────────────────────────────────────┤
+│                                     │
+│  歡迎來到圖書館！                    │
+│  這裡有豐富的學習資源。              │
+│                                     │
+│  你獲得了 8.5 分！                  │
+│                                     │
+│         [確定]                      │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+#### 活動選擇對話框
+
+```
+┌─────────────────────────────────────┐
+│  🏫 John Medley Building            │
+├─────────────────────────────────────┤
+│  選擇要參加的活動：                  │
+│                                     │
+│  1. 📚 Data Structures              │
+│     講座 | 10:00-12:00 | 5.0分     │
+│                                     │
+│  2. 💬 AI & Machine Learning        │
+│     研討會 | 14:00-16:00 | 8.0分   │
+│                                     │
+│  3. 📝 Final Exam                   │
+│     考試 | 09:00-11:00 | 12.0分    │
+│                                     │
+│     [選擇] [取消]                   │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+### 7.4 小地圖
+
+```
+┌───────────────┐
+│ ■ ■ ■ ■ ■ ■ ■│  圖例:
+│ ■ · · 🏛 · · ■│  ■ 牆壁
+│ ■ · 🌳 · · · ■│  · 空地
+│ ■ 📚 · 👤 · · ■│  🌳 障礙
+│ ■ · · · 🍽 · ■│  👤 玩家
+│ ■ · · · · 🏫 ■│  🏛 地點
+│ ■ ■ ■ ■ ■ ■ ■│
+└───────────────┘
+```
+
+---
+
+## 8. 狀態管理
+
+### 8.1 Zustand Store 架構
+
+```typescript
+/**
+ * 遊戲狀態 Store
+ */
+export const useGameStore = create<GameStore>((set, get) => ({
+  // 狀態
+  status: GameStatus.MENU,
+  map: null,
+  isPaused: false,
+  elapsedTime: 0,
+  showDialog: false,
+  currentDialog: null,
+  settings: {
+    soundEnabled: true,
+    musicEnabled: true,
+    volume: 0.7,
+    showMiniMap: true,
+    showGrid: false
+  },
+
+  // Actions
+  startNewGame: () => {
+    const config: MapGenerationConfig = {
+      rows: 18,
+      columns: 18,
+      placeCount: {
+        [PlaceType.LIBRARY]: [2, 3],
+        [PlaceType.CAFETERIA]: [2, 4],
+        [PlaceType.SPORTS_CENTER]: [1, 2],
+        [PlaceType.LECTURE_HALL]: [3, 5],
+        [PlaceType.EVENT_HALL]: [1, 2]
+      },
+      obstacleRatio: 0.15,
+      minDistance: 3,
+      eventPerPlace: [1, 3]
+    };
+
+    const map = generateCampusMap(config);
+
+    set({
+      status: GameStatus.PLAYING,
+      map,
+      isPaused: false,
+      elapsedTime: 0
+    });
+
+    // 初始化玩家
+    get().playerStore.initializePlayer(map.startPosition);
+  },
+
+  pauseGame: () => set({ isPaused: true }),
+  resumeGame: () => set({ isPaused: false }),
+
+  updateElapsedTime: (delta: number) => {
+    if (!get().isPaused) {
+      set(state => ({ elapsedTime: state.elapsedTime + delta }));
+    }
+  },
+
+  showDialog: (dialog: DialogData) => {
+    set({ showDialog: true, currentDialog: dialog, isPaused: true });
+  },
+
+  closeDialog: () => {
+    set({ showDialog: false, currentDialog: null, isPaused: false });
+  },
+
+  updateSettings: (settings: Partial<GameSettings>) => {
+    set(state => ({
+      settings: { ...state.settings, ...settings }
+    }));
+  }
+}));
+
+/**
+ * 玩家狀態 Store
+ */
+export const usePlayerStore = create<PlayerStore>((set, get) => ({
+  // 狀態
+  player: null,
+
+  // Actions
+  initializePlayer: (startPosition: Position) => {
+    const player: Player = {
+      currentPosition: startPosition,
+      previousPosition: null,
+      facing: Direction.DOWN,
+      totalMoves: 0,
+      totalHits: 0,
+      totalScore: 0,
+      scoreHistory: [],
+      achievements: [],
+      inventory: [],
+      sessionId: generateSessionId(),
+      isMoving: false,
+      sprite: 'player_default'
+    };
+
+    set({ player });
+  },
+
+  movePlayer: (direction: Direction) => {
+    const player = get().player;
+    const map = useGameStore.getState().map;
+
+    if (!player || !map) return;
+
+    const result = handlePlayerMove(player, map, direction);
+
+    if (result.success) {
+      set({ player: { ...player } });
+
+      if (result.place) {
+        // 觸發地點互動
+        handlePlaceInteraction(player, result.place);
+      }
+
+      // 檢查遊戲完成
+      if (checkGameCompletion(map, player)) {
+        handleGameCompletion(player, useGameStore.getState().elapsedTime);
+      }
+    }
+  },
+
+  addScore: (score: Score) => {
+    set(state => ({
+      player: state.player ? {
+        ...state.player,
+        totalScore: state.player.totalScore + score.score,
+        scoreHistory: [...state.player.scoreHistory, score]
+      } : null
+    }));
+  },
+
+  unlockAchievement: (achievementId: string) => {
+    set(state => ({
+      player: state.player ? {
+        ...state.player,
+        achievements: [...state.player.achievements, achievementId]
+      } : null
+    }));
+  }
+}));
+```
+
+---
+
+## 9. 本地儲存設計
+
+### 9.1 LocalStorage 結構
+
+```typescript
+/**
+ * LocalStorage 鍵值
+ */
+export const STORAGE_KEYS = {
+  GAME_SAVE: 'campus_navigator_save',
+  HIGH_SCORES: 'campus_navigator_high_scores',
+  SETTINGS: 'campus_navigator_settings',
+  ACHIEVEMENTS: 'campus_navigator_achievements'
+} as const;
+
+/**
+ * 遊戲存檔資料
+ */
+export interface GameSave {
+  version: string;                      // 存檔版本
+  savedAt: number;                      // 儲存時間
+  sessionId: string;                    // 會話 ID
+  map: CampusMap;                       // 地圖狀態
+  player: Player;                       // 玩家狀態
+  elapsedTime: number;                  // 經過時間
+}
+
+/**
+ * 最高分記錄
+ */
+export interface HighScore {
+  id: string;
+  playerName: string;
+  score: number;
+  moves: number;
+  hits: number;
+  elapsedTime: number;
+  efficiency: number;
+  completedAt: number;
+}
+```
+
+### 9.2 儲存與載入
+
+```typescript
+/**
+ * 儲存遊戲
+ */
+export function saveGame(): boolean {
+  try {
+    const gameState = useGameStore.getState();
+    const playerState = usePlayerStore.getState();
+
+    if (!gameState.map || !playerState.player) {
+      return false;
+    }
+
+    const save: GameSave = {
+      version: '2.0.0',
+      savedAt: Date.now(),
+      sessionId: playerState.player.sessionId,
+      map: gameState.map,
+      player: playerState.player,
+      elapsedTime: gameState.elapsedTime
+    };
+
+    localStorage.setItem(
+      STORAGE_KEYS.GAME_SAVE,
+      JSON.stringify(save)
+    );
+
+    return true;
+  } catch (error) {
+    console.error('Failed to save game:', error);
+    return false;
+  }
+}
+
+/**
+ * 載入遊戲
+ */
+export function loadGame(): GameSave | null {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.GAME_SAVE);
+
+    if (!data) return null;
+
+    const save: GameSave = JSON.parse(data);
+
+    // 驗證存檔版本
+    if (save.version !== '2.0.0') {
+      console.warn('Incompatible save version');
+      return null;
+    }
+
+    return save;
+  } catch (error) {
+    console.error('Failed to load game:', error);
+    return null;
+  }
+}
+
+/**
+ * 儲存最高分
+ */
+export function saveHighScore(score: HighScore): void {
+  try {
+    const scores = getHighScores();
+    scores.push(score);
+
+    // 排序並保留前 10 名
+    scores.sort((a, b) => b.score - a.score);
+    const top10 = scores.slice(0, 10);
+
+    localStorage.setItem(
+      STORAGE_KEYS.HIGH_SCORES,
+      JSON.stringify(top10)
+    );
+  } catch (error) {
+    console.error('Failed to save high score:', error);
+  }
+}
+
+/**
+ * 取得最高分排行榜
+ */
+export function getHighScores(): HighScore[] {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.HIGH_SCORES);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Failed to get high scores:', error);
+    return [];
+  }
+}
+```
+
+---
+
+## 10. 序列圖
+
+### 10.1 遊戲啟動序列圖
+
+```mermaid
+sequenceDiagram
+    actor User as 使用者
+    participant App
+    participant GameStore
+    participant MapGen as MapGenerator
+    participant PlayerStore
+    participant Renderer
+
+    User->>App: 點擊「開始新遊戲」
+    App->>GameStore: startNewGame()
+    GameStore->>MapGen: generateCampusMap(config)
+
+    MapGen->>MapGen: initializeGrid()
+    MapGen->>MapGen: placePlaces()
+    MapGen->>MapGen: generateObstacles()
+    MapGen->>MapGen: setStartPosition()
+    MapGen->>MapGen: validateConnectivity()
+    MapGen->>MapGen: generateEvents()
+
+    MapGen-->>GameStore: CampusMap
+    GameStore->>GameStore: set map & status
+    GameStore->>PlayerStore: initializePlayer(startPos)
+
+    PlayerStore->>PlayerStore: create Player
+    PlayerStore-->>GameStore: Player initialized
+
+    GameStore->>Renderer: render(map, player)
+    Renderer-->>User: 顯示遊戲畫面
+```
+
+### 10.2 玩家移動序列圖
+
+```mermaid
+sequenceDiagram
+    actor User as 使用者
+    participant Input as KeyboardHandler
+    participant PlayerStore
+    participant GameLogic
+    participant Map
+    participant UI
+
+    User->>Input: 按下方向鍵
+    Input->>PlayerStore: movePlayer(direction)
+    PlayerStore->>GameLogic: handlePlayerMove(player, map, direction)
+
+    GameLogic->>GameLogic: calculateNewPosition()
+    GameLogic->>Map: getPositionType(newPos)
+    Map-->>GameLogic: MapPositionType
+
+    alt 碰撞 (BOUNDARY/RESTRICTED)
+        GameLogic->>PlayerStore: increment hits
+        GameLogic->>UI: showMessage("碰撞！")
+        GameLogic-->>PlayerStore: { success: false }
+
+    else 有效移動 (OPEN)
+        GameLogic->>PlayerStore: update position & moves
+        GameLogic-->>PlayerStore: { success: true }
+
+    else 到達地點 (PLACE)
+        GameLogic->>PlayerStore: update position & moves
+        GameLogic->>Map: getPlace(newPos)
+        Map-->>GameLogic: Place
+        GameLogic->>PlayerStore: handlePlaceInteraction(place)
+        GameLogic-->>PlayerStore: { success: true, place }
+    end
+
+    PlayerStore->>UI: trigger re-render
+    UI-->>User: 更新畫面
+```
+
+---
+
+## 11. 類別圖
+
+```mermaid
+classDiagram
+    class CampusMap {
+        +string name
+        +number rows
+        +number columns
+        +MapPositionType[][] grid
+        +(Place|null)[][] places
+        +Position startPosition
+        +number generatedAt
+        +number seed?
+    }
+
+    class Place {
+        <<interface>>
+        +string id
+        +string name
+        +PlaceType type
+        +Position position
+        +number score
+        +boolean visited
+        +boolean restricted
+        +boolean bookable
+        +boolean booked
+        +Event[] events
+        +string description
+        +string sprite
+    }
+
+    class Library {
+        +PlaceType.LIBRARY type
+        +number studyRooms
+        +string openHours
+    }
+
+    class Cafeteria {
+        +PlaceType.CAFETERIA type
+        +MenuItem[] menu
+    }
+
+    class SportsCenter {
+        +PlaceType.SPORTS_CENTER type
+        +boolean bookable
+        +string[] facilities
+    }
+
+    class LectureHall {
+        +PlaceType.LECTURE_HALL type
+        +number capacity
+        +string building
+    }
+
+    class EventHall {
+        +PlaceType.EVENT_HALL type
+        +boolean bookable
+        +boolean stage
+    }
+
+    class Event {
+        <<interface>>
+        +number id
+        +string name
+        +EventType type
+        +string date
+        +string startTime
+        +string endTime
+        +number score
+        +boolean attended
+        +string placeId
+    }
+
+    class Lecture {
+        +EventType.LECTURE type
+        +string courseCode
+        +string lecturer
+    }
+
+    class Seminar {
+        +EventType.SEMINAR type
+        +string[] speakers
+        +string topic
+    }
+
+    class Exam {
+        +EventType.EXAM type
+        +string courseCode
+        +number duration
+    }
+
+    class Player {
+        +Position currentPosition
+        +Position previousPosition?
+        +Direction facing
+        +number totalMoves
+        +number totalHits
+        +number totalScore
+        +Score[] scoreHistory
+        +string[] achievements
+        +string[] inventory
+        +string sessionId
+        +boolean isMoving
+        +string sprite
+    }
+
+    class Score {
+        +string id
+        +string sessionId
+        +string mapName
+        +string placeName
+        +PlaceType placeType
+        +string eventName?
+        +EventType eventType?
+        +string date?
+        +string timeRange?
+        +number moves
+        +number hits
+        +number score
+        +number timestamp
+    }
+
+    class GameState {
+        +GameStatus status
+        +CampusMap map
+        +Player player
+        +number elapsedTime
+        +boolean isPaused
+        +boolean showDialog
+        +DialogData currentDialog?
+        +GameSettings settings
+    }
+
+    CampusMap *-- Place : contains
+    Place <|-- Library : implements
+    Place <|-- Cafeteria : implements
+    Place <|-- SportsCenter : implements
+    Place <|-- LectureHall : implements
+    Place <|-- EventHall : implements
+
+    Place *-- Event : has
+    Event <|-- Lecture : implements
+    Event <|-- Seminar : implements
+    Event <|-- Exam : implements
+
+    Player o-- Score : records
+    GameState *-- CampusMap : has
+    GameState *-- Player : has
+```
+
+---
+
+## 12. 流程圖
+
+### 12.1 遊戲主循環
+
+```mermaid
+flowchart TD
+    Start([遊戲啟動]) --> Init[初始化遊戲引擎]
+    Init --> LoadAssets[載入資源]
+    LoadAssets --> MainMenu{顯示主選單}
+
+    MainMenu -->|新遊戲| GenMap[生成隨機地圖]
+    MainMenu -->|載入| LoadGame[載入存檔]
+    MainMenu -->|設定| Settings[調整設定]
+    MainMenu -->|退出| End([結束])
+
+    GenMap --> InitPlayer[初始化玩家]
+    LoadGame --> InitPlayer
+    InitPlayer --> GameLoop{遊戲循環}
+
+    GameLoop -->|更新| Update[更新遊戲狀態]
+    Update --> HandleInput[處理輸入]
+    HandleInput --> UpdatePhysics[更新物理/碰撞]
+    UpdatePhysics --> CheckEvents[檢查事件]
+    CheckEvents --> Render[渲染畫面]
+    Render --> CheckPause{是否暫停?}
+
+    CheckPause -->|否| CheckComplete{遊戲完成?}
+    CheckPause -->|是| PauseMenu{暫停選單}
+
+    PauseMenu -->|繼續| GameLoop
+    PauseMenu -->|存檔| SaveGame[儲存遊戲]
+    PauseMenu -->|主選單| MainMenu
+
+    SaveGame --> GameLoop
+
+    CheckComplete -->|否| GameLoop
+    CheckComplete -->|是| EndScreen[結算畫面]
+    EndScreen --> SaveScore[儲存分數]
+    SaveScore --> MainMenu
+
+    Settings --> MainMenu
+```
+
+---
+
+## 13. 狀態圖
+
+### 13.1 遊戲狀態機
+
+```mermaid
+stateDiagram-v2
+    [*] --> MENU: 啟動應用
+
+    MENU --> PLAYING: 開始新遊戲/載入遊戲
+    PLAYING --> PAUSED: 按 ESC
+    PAUSED --> PLAYING: 繼續
+    PAUSED --> MENU: 返回主選單
+
+    PLAYING --> COMPLETED: 完成所有目標
+    COMPLETED --> MENU: 查看結算後返回
+
+    MENU --> [*]: 退出應用
+```
+
+### 13.2 地點狀態機
+
+```mermaid
+stateDiagram-v2
+    [*] --> Unvisited: 地點生成
+    Unvisited --> Visiting: 玩家到達
+
+    Visiting --> NoEvents: 沒有活動
+    Visiting --> HasEvents: 有活動
+
+    NoEvents --> Visited: 訪問完成
+
+    HasEvents --> AttendingEvent: 選擇活動
+    AttendingEvent --> HasMoreEvents: 還有活動
+    AttendingEvent --> AllEventsAttended: 所有活動完成
+
+    HasMoreEvents --> HasEvents: 繼續
+    HasMoreEvents --> Visited: 離開
+
+    AllEventsAttended --> Visited: 完成
+
+    Visited --> [*]: 可重複訪問
+```
+
+---
+
+## 14. 虛擬碼
+
+### 14.1 遊戲主循環虛擬碼
+
+```
+FUNCTION gameLoop():
+    lastTime = getCurrentTime()
+
+    WHILE gameRunning:
+        currentTime = getCurrentTime()
+        deltaTime = currentTime - lastTime
+        lastTime = currentTime
+
+        // 處理輸入
+        processInput()
+
+        // 更新遊戲狀態
+        IF NOT isPaused:
+            updateGameState(deltaTime)
+            updatePlayer(deltaTime)
+            updateAnimations(deltaTime)
+            checkCollisions()
+            checkGameCompletion()
+        END IF
+
+        // 渲染
+        clearCanvas()
+        renderMap()
+        renderPlaces()
+        renderPlayer()
+        renderEffects()
+        renderUI()
+        renderDialog()
+
+        // 限制幀率（60 FPS）
+        WAIT_FOR_NEXT_FRAME()
+    END WHILE
+END FUNCTION
+```
+
+### 14.2 碰撞偵測虛擬碼
+
+```
+FUNCTION checkCollision(position: Position, map: CampusMap): CollisionResult
+    // 檢查邊界
+    IF position.row < 0 OR position.row >= map.rows OR
+       position.col < 0 OR position.col >= map.columns:
+        RETURN { collided: true, type: 'boundary' }
+    END IF
+
+    // 取得位置類型
+    tileType = map.grid[position.row][position.col]
+
+    // 檢查不同類型
+    SWITCH tileType:
+        CASE BOUNDARY:
+            RETURN { collided: true, type: 'boundary' }
+
+        CASE RESTRICTED:
+            RETURN { collided: true, type: 'obstacle' }
+
+        CASE OPEN:
+            RETURN { collided: false }
+
+        CASE PLACE:
+            place = map.places[position.row][position.col]
+            RETURN { collided: false, place: place }
+    END SWITCH
+END FUNCTION
+```
+
+### 14.3 A* 尋路演算法虛擬碼
+
+```
+FUNCTION findPath(start: Position, goal: Position, map: CampusMap): Position[]
+    openSet = PriorityQueue()
+    openSet.add(start, 0)
+
+    cameFrom = Map()
+    gScore = Map()
+    gScore[start] = 0
+
+    fScore = Map()
+    fScore[start] = heuristic(start, goal)
+
+    WHILE NOT openSet.isEmpty():
+        current = openSet.poll()
+
+        IF current == goal:
+            RETURN reconstructPath(cameFrom, current)
+        END IF
+
+        FOR neighbor IN getNeighbors(current, map):
+            tentative_gScore = gScore[current] + 1
+
+            IF tentative_gScore < gScore.get(neighbor, INFINITY):
+                cameFrom[neighbor] = current
+                gScore[neighbor] = tentative_gScore
+                fScore[neighbor] = tentative_gScore + heuristic(neighbor, goal)
+
+                IF neighbor NOT IN openSet:
+                    openSet.add(neighbor, fScore[neighbor])
+                END IF
+            END IF
+        END FOR
+    END WHILE
+
+    RETURN [] // 沒有路徑
+END FUNCTION
+
+FUNCTION heuristic(a: Position, b: Position): number
+    // 曼哈頓距離
+    RETURN ABS(a.row - b.row) + ABS(a.col - b.col)
+END FUNCTION
+```
+
+---
+
+## 15. 開發路線圖
+
+### 15.1 階段一：基礎架構（Week 1-2）
+- [x] 確認技術選型
+- [ ] 建立 Vite + React + TypeScript 專案
+- [ ] 設定 ESLint、Prettier、Tailwind CSS
+- [ ] 建立基本專案結構
+- [ ] 實作基礎 TypeScript interfaces
+- [ ] 設定 Zustand 狀態管理
+
+### 15.2 階段二：核心遊戲邏輯（Week 3-4）
+- [ ] 實作隨機地圖生成器
+  - [ ] 網格初始化
+  - [ ] 地點放置演算法
+  - [ ] 障礙物生成
+  - [ ] 連通性驗證
+  - [ ] 活動生成
+- [ ] 實作玩家移動系統
+  - [ ] 方向控制
+  - [ ] 碰撞偵測
+  - [ ] 位置更新
+- [ ] 實作地點互動系統
+  - [ ] 地點訪問邏輯
+  - [ ] 活動參加邏輯
+  - [ ] 得分計算
+
+### 15.3 階段三：等距視角渲染（Week 5-6）
+- [ ] 實作等距座標轉換
+- [ ] 建立 Canvas 渲染器
+- [ ] 繪製地圖磚塊
+- [ ] 繪製建築物精靈
+- [ ] 繪製玩家精靈
+- [ ] 實作分層渲染
+- [ ] 實作相機跟隨
+
+### 15.4 階段四：UI/UX（Week 7-8）
+- [ ] 設計並實作主選單
+- [ ] 實作遊戲 HUD
+- [ ] 實作對話框系統
+- [ ] 實作統計面板
+- [ ] 實作小地圖
+- [ ] 實作暫停選單
+- [ ] 實作結算畫面
+
+### 15.5 階段五：資料持久化（Week 9）
+- [ ] 實作 LocalStorage 封裝
+- [ ] 實作遊戲存檔功能
+- [ ] 實作遊戲載入功能
+- [ ] 實作排行榜系統
+- [ ] 實作設定儲存
+
+### 15.6 階段六：音效與動畫（Week 10）
+- [ ] 整合音效管理器
+- [ ] 加入背景音樂
+- [ ] 加入互動音效
+- [ ] 實作精靈動畫
+- [ ] 實作特效系統
+
+### 15.7 階段七：成就系統（Week 11）
+- [ ] 定義成就清單
+- [ ] 實作成就檢查邏輯
+- [ ] 實作成就解鎖動畫
+- [ ] 實作成就面板
+
+### 15.8 階段八：測試與優化（Week 12）
+- [ ] 單元測試
+- [ ] 整合測試
+- [ ] E2E 測試
+- [ ] 效能優化
+- [ ] Bug 修復
+
+### 15.9 階段九：部署（Week 13）
+- [ ] 建立 GitHub Repository
+- [ ] 設定 CI/CD
+- [ ] 部署到 Vercel/Netlify
+- [ ] 撰寫 README
+- [ ] 撰寫使用手冊
+
+---
+
+## 16. 測試策略
+
+### 16.1 單元測試
+
+```typescript
+/**
+ * 地圖生成器測試
+ */
+describe('MapGenerator', () => {
+  test('should generate valid map dimensions', () => {
+    const config: MapGenerationConfig = {
+      rows: 15,
+      columns: 15,
+      placeCount: { /* ... */ },
+      obstacleRatio: 0.15,
+      minDistance: 3,
+      eventPerPlace: [1, 3]
+    };
+
+    const map = generateCampusMap(config);
+
+    expect(map.rows).toBe(15);
+    expect(map.columns).toBe(15);
+    expect(map.grid).toHaveLength(15);
+    expect(map.grid[0]).toHaveLength(15);
+  });
+
+  test('should ensure all places are reachable', () => {
+    const map = generateCampusMap(defaultConfig);
+    const reachable = validateConnectivity(
+      map.grid,
+      map.places,
+      map.startPosition
+    );
+
+    expect(reachable).toBe(true);
+  });
+});
+
+/**
+ * 碰撞系統測試
+ */
+describe('CollisionSystem', () => {
+  test('should detect boundary collision', () => {
+    const position = { row: 0, col: 5 };
+    const result = checkCollision(position, mockMap);
+
+    expect(result.collided).toBe(true);
+    expect(result.type).toBe('boundary');
+  });
+
+  test('should detect obstacle collision', () => {
+    const position = { row: 5, col: 5 };
+    mockMap.grid[5][5] = MapPositionType.RESTRICTED;
+
+    const result = checkCollision(position, mockMap);
+
+    expect(result.collided).toBe(true);
+    expect(result.type).toBe('obstacle');
+  });
+});
+```
+
+### 16.2 整合測試
+
+```typescript
+/**
+ * 玩家移動整合測試
+ */
+describe('Player Movement Integration', () => {
+  test('should update player position on valid move', () => {
+    const { result } = renderHook(() => usePlayerStore());
+
+    act(() => {
+      result.current.initializePlayer({ row: 5, col: 5 });
+      result.current.movePlayer(Direction.UP);
+    });
+
+    expect(result.current.player?.currentPosition).toEqual({
+      row: 4,
+      col: 5
+    });
+    expect(result.current.player?.totalMoves).toBe(1);
+  });
+
+  test('should trigger place interaction on arrival', () => {
+    const onPlaceVisit = jest.fn();
+    const { result } = renderHook(() => usePlayerStore());
+
+    // 設定地點
+    mockMap.grid[4][5] = MapPositionType.PLACE;
+    mockMap.places[4][5] = mockLibrary;
+
+    act(() => {
+      result.current.initializePlayer({ row: 5, col: 5 });
+      result.current.movePlayer(Direction.UP);
+    });
+
+    expect(onPlaceVisit).toHaveBeenCalledWith(mockLibrary);
+  });
+});
+```
+
+### 16.3 E2E 測試
+
+```typescript
+/**
+ * Playwright E2E 測試
+ */
+import { test, expect } from '@playwright/test';
+
+test('complete game flow', async ({ page }) => {
+  await page.goto('http://localhost:5173');
+
+  // 開始新遊戲
+  await page.click('text=開始新遊戲');
+
+  // 等待地圖載入
+  await expect(page.locator('canvas')).toBeVisible();
+
+  // 移動玩家
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('ArrowRight');
+
+  // 檢查分數更新
+  const scoreText = await page.locator('[data-testid="score"]').textContent();
+  expect(scoreText).toContain('得分');
+
+  // 訪問地點
+  // ... 更多測試步驟
+});
+```
+
+---
+
+## 17. 總結
+
+本規格文件定義了 **Campus Navigator Web Game** 的完整技術架構和實作細節，包括：
+
+✅ **專案概述**: 清晰的遊戲目標和核心玩法
+✅ **技術選型**: React + Vite + TypeScript + Zustand
+✅ **資料模型**: 完整的 TypeScript interfaces
+✅ **隨機地圖生成**: 詳細的演算法設計
+✅ **等距視角渲染**: 座標轉換和渲染系統
+✅ **遊戲流程**: 完整的互動邏輯
+✅ **UI/UX 設計**: 精美的遊戲介面
+✅ **狀態管理**: Zustand Store 架構
+✅ **本地儲存**: LocalStorage 設計
+✅ **圖表文件**: 序列圖、類別圖、流程圖、狀態圖
+✅ **虛擬碼**: 關鍵演算法實作
+✅ **開發路線圖**: 13 週完整計畫
+✅ **測試策略**: 單元測試、整合測試、E2E 測試
+
+開發團隊可依據本文件進行實作，確保專案品質和進度。
+
+---
+
+**文件版本**: 2.0.0
+**最後更新**: 2025-10-18
+**維護者**: Campus Navigator Development Team

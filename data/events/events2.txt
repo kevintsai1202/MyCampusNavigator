@@ -1,0 +1,7 @@
+row_id,col_id,event_type,date,start_time,end_time,score,name,speaker
+3,3,lecture,2024-05-14,09:00,10:30,8.7,Modern History,Dr. Rachel Lee
+2,2,seminar,2024-05-15,11:00,12:30,7.5,Plant Genetics Seminar,Dr. Tom Richardson#Dr. Chloe Nguyen
+3,3,lecture,2024-05-17,10:30,11:30,6.8,Environmental Chemistry,Dr. Michael Brown
+3,3,lecture,2024-05-18,15:00,16:30,7.9,Landscape Design,Dr. Olivia White
+2,3,lecture,2024-05-19,12:00,13:30,8.7,Ecology and Conservation,Dr. Henry Green
+2,2,exam,2024-05-24,10:00,11:00,6.7,Data Structures,Dr. Emma Stone

@@ -1,0 +1,7 @@
+row_id,col_id,place_type,place_name,score,restricted
+1,2,LIBRARY,Baillieu Library,8.2,no
+2,2,EVENT_HALL,Wilson Hall,9.0,no
+3,3,LECTURE_HALL,David Wood Lecture Theatre,8.5,no
+2,1,LIBRARY,Giblin Eunson Library,3.5,no
+3,1,CAFETERIA,Campus Canteen,-2.9,no
+2,3,LECTURE_HALL,Medical Building,7.6,no

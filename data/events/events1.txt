@@ -1,0 +1,10 @@
+row_id,col_id,event_type,date,start_time,end_time,score,name,speaker
+1,4,lecture,2024-05-14,09:00,10:30,8.7,Modern Physics,Dr. Alice Martin
+5,3,exam,2024-05-18,15:00,16:30,8.9,Organics,Dr. Mark Evans
+5,1,lecture,2024-05-20,14:00,15:00,Advanced Chemistry,Dr. Henry Green
+1,4,lecture,2024-05-15,11:00,12:30,7.2,Discrete Mathematics,Dr. Tom Richardson
+5,1,lecture,2024-05-17,10:00,11:00,6.5,Linear Algebra,Dr. Sophia Ahmed
+
+5,3,lecture,2024-05-16,,14:30,9.1,Data Structures,Dr. Julia Adams
+5,3,seminar,2024-05-17,10:00,11:00,6.8,Robotics Seminar,Dr. Victor Lee#Dr. Olivia White
+

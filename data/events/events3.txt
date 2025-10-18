@@ -1,0 +1,6 @@
+row_id,col_id,event_type,date,start_time,end_time,score,name,speaker
+2,1,lecture,2024-05-14,09:00,10:30,8.9,Data Science,Dr. Alice Martin
+2,1,exam,2024-05-15,11:00,12:30,7.1,Robotics,Dr. Tom Richardson
+2,1,exams,2024-05-25,09:00,10:30,8.4,Algorithms,Dr. Susan King
+2,1,seminar,2024-05-25,09:00,10:30,8.2,AI Seminar,Dr. Susan King#Dr. Emma Stone
+

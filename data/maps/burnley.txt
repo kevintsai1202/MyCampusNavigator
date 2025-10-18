@@ -1,0 +1,5 @@
+row_id,col_id,place_type,place_name,score,restricted
+1,2,SPORTS_CENTRE,Burnley Sports Centre,7.2,no
+2,2,CAFETERIA,Greenhouse Cafe,-2.5,no
+2,1,EVENT_HALL,Burnley Seminar Room,8.1,no
+

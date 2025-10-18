@@ -1,0 +1,14 @@
+row_id,col_id,event_type,date,start_time,end_time,score,name,speaker
+3,1,exam,2024-05-14,09:00,10:30,8.4,English,Dr. Anna Scott
+2,2,lecture,2024-05-15,11:00,12:30,7.7,Biology,Dr. Mark Evans
+3,1,seminar,2024-05-16,13:00,14:30,9.2,Seminar,Dr. Julia Adams#Dr. Victor Lee
+2,1,lecture,2024-05-17,10:00,11:00,6.6,Physics,Dr. Brian Fox
+3,1,lecture,2024-05-18,15:00,16:30,8.8,Chemistry,Dr. Susan King
+3,1,seminar,2024-05-19,12:00,13:30,7.3,Research Seminar,Dr. Olivia White#Dr. Samuel Wright
+3,1,lecture,2024-05-20,24:00,15:00,Mathematics,Dr. Emma Stone
+3,1,seminar,2024-05-21,09:00,10:30,8.0,Technology Seminar,Dr. Peter Hall#Dr. Linda Brown
+4,2,lecture,2024-05-22,31:00,12:30,7.5,Literature,Dr. Lucas Gray
+3,1,seminar,2024-05-23,13:00,14:30,8.6,Science Seminar,Dr. Kevin Young#Dr. Susan King
+3,1,lecture,2024-05-24,10:00,11:00,7.9,Engineering,Dr. Alice Martin
+3,1,exam,2024-05-25,09:00,10:30,8.2,Computer Science,Dr. Tom Richardson
+

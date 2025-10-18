@@ -1,0 +1,8 @@
+row_id,col_id,place_type,place_name,score,restricted
+1,4,LECTURE_HALL,John Medley Building,8.1,no
+2,1,CAFETERIA,House of Cards,-2.8,yes
+5,1,LECTURE_HALL,Redmond Barry Building,8.5,no
+5,3,EVENT_HALL,Wilson Hall,8.7,no
+4,1,CAFETERIA,Villa of Cards,-2.0,no
+3,3,SPORTS_CENTRE,Melbourne Centre,7.7,no
+5,6,SPORTS_CENTRE,Lincoln Centre,7.25,no
