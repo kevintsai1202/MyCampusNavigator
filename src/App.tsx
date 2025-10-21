@@ -3,14 +3,16 @@ import { useGameStore } from './stores/gameStore'
 import { GameStatus } from './models/GameState'
 import { getAllPlaces, calculateMapStats } from './models/CampusMap'
 import { getPlaceTypeIcon, getPlaceTypeName } from './models/Place'
-import GameCanvas from './components/Game/GameCanvas'
+import GameCanvas from './components/game/GameCanvas'
+import Dialog from './components/ui/Dialog'
+import PlaceDialog from './components/ui/PlaceDialog'
 
 /**
  * 主應用程式組件
  * 負責管理整體遊戲狀態和路由
  */
 function App() {
-  const { status, map, player, startNewGame, movePlayer } = useGameStore()
+  const { status, map, player, startNewGame, showPlaceDialog, currentPlace, closePlaceDialog } = useGameStore()
 
   // 測試：自動開始遊戲（開發模式）
   useEffect(() => {
@@ -137,6 +139,14 @@ function App() {
             </div>
           </div>
         </div>
+
+        {/* 對話框系統 */}
+        <Dialog />
+
+        {/* 地點互動對話框 */}
+        {showPlaceDialog && currentPlace && (
+          <PlaceDialog place={currentPlace} onClose={closePlaceDialog} />
+        )}
       </div>
     )
   }

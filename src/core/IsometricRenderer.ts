@@ -6,9 +6,6 @@ import { PlaceType, getPlaceTypeIcon } from '@models/Place'
 import {
   gridToIsometric,
   TILE_CONFIG,
-  calculateMapWidth,
-  calculateMapHeight,
-  calculateMapOffset,
 } from './IsometricTransform'
 
 /**
@@ -121,7 +118,7 @@ export class IsometricRenderer {
   /**
    * 更新相機偏移（跟隨玩家）
    */
-  private updateCameraOffset(map: CampusMap, player: Player): void {
+  private updateCameraOffset(_map: CampusMap, player: Player): void {
     // 計算玩家的等距座標
     const playerIsoPos = gridToIsometric(
       player.position,

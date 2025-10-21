@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { CampusMap, MapGenerationConfig } from '@models/CampusMap'
 import { Player, createPlayer } from '@models/Player'
 import { GameStatus, GameSettings, createDefaultSettings, DialogData } from '@models/GameState'
-import { PlaceType } from '@models/Place'
+import { PlaceType, Place } from '@models/Place'
 import { generateCampusMap } from '@core/MapGenerator'
 import { Position } from '@models/Position'
 import { getPlaceAt } from '@models/CampusMap'
@@ -22,6 +22,8 @@ interface GameStore {
   elapsedTime: number
   showDialog: boolean
   currentDialog: DialogData | null
+  showPlaceDialog: boolean
+  currentPlace: Place | null
   settings: GameSettings
 
   // 動作方法
@@ -38,6 +40,7 @@ interface GameStore {
   // 地點互動
   visitPlace: (position: Position) => void
   completeEvent: (eventId: string) => void
+  closePlaceDialog: () => void
 
   // 對話框
   showDialogBox: (dialog: DialogData) => void
@@ -80,6 +83,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   elapsedTime: 0,
   showDialog: false,
   currentDialog: null,
+  showPlaceDialog: false,
+  currentPlace: null,
   settings: createDefaultSettings(),
 
   // 開始新遊戲
@@ -212,27 +217,39 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const place = getPlaceAt(map, position)
     if (!place) return
 
+    // 計算訪問獎勵（首次訪問給予 50 分）
+    const isFirstVisit = !place.visited
+    const visitBonus = isFirstVisit ? 50 : 0
+
     // 標記地點為已訪問
-    place.visited = true
-    place.discoveredAt = Date.now()
+    if (isFirstVisit) {
+      place.visited = true
+      place.discoveredAt = Date.now()
 
-    // 更新玩家狀態
+      // 更新玩家狀態（首次訪問）
+      set({
+        player: {
+          ...player,
+          visitedPlaces: [...player.visitedPlaces, place.id],
+          totalScore: player.totalScore + visitBonus,
+        },
+        showPlaceDialog: true,
+        currentPlace: place,
+      })
+    } else {
+      // 重複訪問，只顯示對話框
+      set({
+        showPlaceDialog: true,
+        currentPlace: place,
+      })
+    }
+  },
+
+  // 關閉地點對話框
+  closePlaceDialog: () => {
     set({
-      player: {
-        ...player,
-        visitedPlaces: [...player.visitedPlaces, place.id],
-      },
-    })
-
-    // 顯示地點資訊對話框
-    get().showDialogBox({
-      title: `發現：${place.name}`,
-      content: `${place.description}\n\n此地點有 ${place.events.length} 個活動可參加。`,
-      type: 'info',
-      confirmText: '確定',
-      onConfirm: () => {
-        get().hideDialogBox()
-      },
+      showPlaceDialog: false,
+      currentPlace: null,
     })
   },
 
@@ -263,24 +280,31 @@ export const useGameStore = create<GameStore>((set, get) => ({
     targetEvent.completedAt = Date.now()
 
     // 更新玩家分數和完成的活動
-    set({
-      player: {
-        ...player,
-        completedEvents: [...player.completedEvents, eventId],
-        totalScore: player.totalScore + targetEvent.score,
-      },
-    })
+    const newPlayer = {
+      ...player,
+      completedEvents: [...player.completedEvents, eventId],
+      totalScore: player.totalScore + targetEvent.score,
+    }
 
-    // 顯示活動完成對話框
-    get().showDialogBox({
-      title: '活動完成！',
-      content: `完成活動：${targetEvent.name}\n獲得分數：+${targetEvent.score}`,
-      type: 'success',
-      confirmText: '確定',
-      onConfirm: () => {
-        get().hideDialogBox()
-      },
-    })
+    set({ player: newPlayer })
+
+    // 顯示活動完成通知（簡短提示）
+    console.log(
+      `✅ 完成活動：${targetEvent.name} | 獲得 +${targetEvent.score} 分 | 總分：${newPlayer.totalScore}`
+    )
+
+    // 檢查是否完成所有任務
+    const totalEvents = map.places
+      .flat()
+      .filter((p) => p !== null)
+      .reduce((sum, place) => sum + place!.events.length, 0)
+
+    if (newPlayer.completedEvents.length === totalEvents) {
+      // 所有活動都完成了，結束遊戲
+      setTimeout(() => {
+        get().endGame()
+      }, 1000)
+    }
   },
 
   // 顯示對話框
